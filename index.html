@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Professional water tank inspection app by Hydrogrid Services">
+    <meta name="keywords" content="water tank inspection, hydrogrid, tank maintenance, water quality">
+    <meta name="author" content="Hydrogrid Services">
+    
+    <!-- Mobile optimizations -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#3b82f6">
+    
+    <title>Hydrogrid Water Tank Inspection App</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.19 3 12.25c0 2.22 1.8 4.05 4 4.05z'/></svg>">
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Mobile-specific optimizations */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            -webkit-text-size-adjust: 100%;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: manipulation;
+        }
+        
+        /* Prevent zoom on input focus (iOS) */
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+        
+        /* Better touch targets for mobile */
+        button, input, select, textarea {
+            min-height: 44px;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Loading animation */
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Success animation */
+        .success-checkmark {
+            animation: checkmark 0.6s ease-in-out;
+        }
+        
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Fallback styling */
+        .fallback-btn {
+            background-color: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            min-height: 44px;
+        }
+        .fallback-btn:hover {
+            background-color: #2563eb;
+        }
+        
+        /* Print styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <!-- Enhanced loading screen -->
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
+            <div style="text-align: center;">
+                <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
+                <h1 style="font-size: 2rem; font-weight: bold; color: #1f2937; margin-bottom: 0.5rem;">HYDROGRID</h1>
+                <p style="color: #6b7280;">Loading Water Tank Inspection App...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Enhanced icons with better mobile visibility
+        const ChevronRightIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+        );
+        
+        const DownloadIcon = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7,10 12,15 17,10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        );
+        
+        const DropletsIcon = ({ size = 32 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.19 3 12.25c0 2.22 1.8 4.05 4 4.05z"></path>
+                <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2.04 4.6 4.14 5.93a10.97 10.97 0 0 0 1.12 6.5 9.25 9.25 0 0 1-2.77 0c-.42-1.9-1.84-3.53-3.93-4.85z"></path>
+            </svg>
+        );
+        
+        const CheckIcon = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="success-checkmark">
+                <polyline points="20,6 9,17 4,12"></polyline>
+            </svg>
+        );
+
+        const HydrogridApp = () => {
+          const [currentScreen, setCurrentScreen] = useState('splash');
+          const [isGenerating, setIsGenerating] = useState(false);
+          const [showSuccess, setShowSuccess] = useState(false);
+          
+          const [formData, setFormData] = useState({
+            reportNo: '',
+            dateOfInspection: new Date().toISOString().split('T')[0], // Auto-set today's date
+            inspector: 'Nazrul Zamri Mohd Yusof',
+            clientName: '',
+            siteAddress: '',
+            tankId: '',
+            tankType: 'Overhead',
+            tankMaterial: 'Steel',
+            capacity: '',
+            lastInspectionDate: 'Not Available',
+            dimensions: { length: '', width: '', height: '' },
+            
+            // Observations
+            externalCondition: 'Fair',
+            externalRemarks: '',
+            internalCondition: 'Poor',
+            internalRemarks: '',
+            roofCondition: 'Poor',
+            roofRemarks: '',
+            accessCondition: 'Fair',
+            accessRemarks: '',
+            cleanliness: 'Dirty',
+            cleanlinessRemarks: '',
+            waterQuality: 'Clear',
+            waterQualityRemarks: '',
+            
+            // Recommendations
+            recommendations: '',
+            conclusion: ''
+          });
+
+          // Auto-save form data to prevent loss
+          useEffect(() => {
+            const savedData = localStorage.getItem('hydrogrid-form-data');
+            if (savedData) {
+              try {
+                setFormData(JSON.parse(savedData));
+              } catch (e) {
+                console.log('Could not load saved data');
+              }
+            }
+          }, []);
+          
+          useEffect(() => {
+            localStorage.setItem('hydrogrid-form-data', JSON.stringify(formData));
+          }, [formData]);
+
+          const updateFormData = (field, value) => {
+            if (field.includes('.')) {
+              const [parent, child] = field.split('.');
+              setFormData(prev => ({
+                ...prev,
+                [parent]: { ...prev[parent], [child]: value }
+              }));
+            } else {
+              setFormData(prev => ({ ...prev, [field]: value }));
+            }
+          };
+
+          const generateReportNumber = () => {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            return `WTIR-${day}${month}${year}-${random}`;
+          };
+
+          const generateWordDocument = async () => {
+            setIsGenerating(true);
+            
+            // Add a small delay to show loading state
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const reportNumber = formData.reportNo || generateReportNumber();
+            
+            const doc = `WATER TANK INSPECTION REPORT
+
+Report No.: ${reportNumber}
+Date of Inspection: ${formData.dateOfInspection}
+Prepared By: ${formData.inspector}
+Designation: Inspector
+Company Name: Hydrogrid Services
+Contact Info: 0165049454 Email: nazrulzamri@gmail.com
+
+═══════════════════════════════════════════════════════════════
+
+GENERAL INFORMATION
+
+Client Name: ${formData.clientName}
+Site Address: ${formData.siteAddress}
+Tank Identification: ${formData.tankId}
+Tank Type: ${formData.tankType}
+Tank Material: ${formData.tankMaterial}
+Capacity: ${formData.capacity} litres
+Tank Dimensions: ${formData.dimensions.length}mm (L) x ${formData.dimensions.width}mm (W) x ${formData.dimensions.height}mm (H)
+Last Inspection Date: ${formData.lastInspectionDate}
+
+═══════════════════════════════════════════════════════════════
+
+INSPECTION SCOPE
+• Visual structural assessment
+• Internal and external condition check
+• Leak and corrosion detection
+• Assessment of inlet/outlet fittings and overflow systems
+• Cleanliness evaluation
+• Inspection of access points (manholes, ladders, vents)
+
+═══════════════════════════════════════════════════════════════
+
+OBSERVATIONS AND FINDINGS
+
+External Structure: ${formData.externalCondition}
+Remarks: ${formData.externalRemarks || 'No specific remarks'}
+
+Internal Surface: ${formData.internalCondition}
+Remarks: ${formData.internalRemarks || 'No specific remarks'}
+
+Tank Roof/Cover: ${formData.roofCondition}
+Remarks: ${formData.roofRemarks || 'No specific remarks'}
+
+Ladders/Access Points: ${formData.accessCondition}
+Remarks: ${formData.accessRemarks || 'No specific remarks'}
+
+Cleanliness: ${formData.cleanliness}
+Remarks: ${formData.cleanlinessRemarks || 'No specific remarks'}
+
+Water Quality: ${formData.waterQuality}
+Remarks: ${formData.waterQualityRemarks || 'No specific remarks'}
+
+═══════════════════════════════════════════════════════════════
+
+RECOMMENDATIONS
+${formData.recommendations || 'No specific recommendations provided.'}
+
+═══════════════════════════════════════════════════════════════
+
+CONCLUSION
+${formData.conclusion || 'Inspection completed as per standard procedures.'}
+
+═══════════════════════════════════════════════════════════════
+
+Inspector's Name & Signature: ${formData.inspector}
+Date: ${new Date().toLocaleDateString('en-GB')}
+
+Report Generated by: Hydrogrid Inspection App v1.0
+Generated on: ${new Date().toLocaleString('en-GB')}`;
+
+            try {
+              const blob = new Blob([doc], { type: 'application/msword' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `Water_Tank_Inspection_Report_${reportNumber}.doc`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+              
+              // Show success state
+              setIsGenerating(false);
+              setShowSuccess(true);
+              setTimeout(() => setShowSuccess(false), 3000);
+              
+              // Clear saved form data after successful generation
+              localStorage.removeItem('hydrogrid-form-data');
+              
+            } catch (error) {
+              console.error('Error generating document:', error);
+              alert('Error generating document. Please try again.');
+              setIsGenerating(false);
+            }
+          };
+
+          // Validation function
+          const isFormValid = () => {
+            const required = ['clientName', 'siteAddress', 'tankId', 'dateOfInspection'];
+            return required.every(field => formData[field].trim() !== '');
+          };
+
+          // Splash Screen with auto-transition
+          if (currentScreen === 'splash') {
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+                <div className="text-center space-y-8 max-w-md">
+                  <div className="mx-auto w-32 h-32 bg-white rounded-full shadow-xl flex items-center justify-center">
+                    <DropletsIcon size={48} />
+                  </div>
+                  <div className="space-y-3">
+                    <h1 className="text-4xl font-bold text-gray-800 tracking-wide">HYDROGRID</h1>
+                    <p className="text-lg text-gray-600">Water Tank Inspection Services</p>
+                    <p className="text-sm text-gray-500">Professional • Reliable • Certified</p>
+                  </div>
+                  <button
+                    onClick={() => setCurrentScreen('form')}
+                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-8 py-4 rounded-lg font-semibold flex items-center mx-auto space-x-3 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                  >
+                    <span className="text-lg">Start Inspection</span>
+                    <ChevronRightIcon />
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          // Main Form with mobile optimizations
+          return (
+            <div className="min-h-screen bg-gray-50">
+              {/* Enhanced Header */}
+              <div className="bg-blue-600 text-white p-4 shadow-lg sticky top-0 z-50">
+                <div className="max-w-4xl mx-auto flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 flex items-center justify-center">
+                      <DropletsIcon size={24} />
+                    </div>
+                    <div>
+                      <h1 className="text-lg sm:text-xl font-bold">HYDROGRID</h1>
+                      <p className="text-xs text-blue-100 hidden sm:block">Inspection Report</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={generateWordDocument}
+                    disabled={!isFormValid() || isGenerating}
+                    className={`px-3 sm:px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 font-medium ${
+                      isFormValid() && !isGenerating
+                        ? 'bg-green-600 hover:bg-green-700 active:bg-green-800'
+                        : 'bg-gray-500 cursor-not-allowed opacity-70'
+                    }`}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span className="hidden sm:inline">Generating...</span>
+                      </>
+                    ) : showSuccess ? (
+                      <>
+                        <CheckIcon />
+                        <span className="hidden sm:inline">Success!</span>
+                      </>
+                    ) : (
+                      <>
+                        <DownloadIcon />
+                        <span className="hidden sm:inline">Generate Report</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8 pb-20">
+                
+                {/* Form validation indicator */}
+                {!isFormValid() && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                    <p className="text-yellow-800 text-sm">
+                      📋 Please fill in required fields: Client Name, Site Address, Tank ID, and Date
+                    </p>
+                  </div>
+                )}
+                
+                {/* General Information Section */}
+                <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <h2 className="text-xl font-semibold mb-4 text-blue-600 flex items-center">
+                    <span className="mr-2">📝</span>
+                    General Information
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Report No.
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.reportNo}
+                        onChange={(e) => updateFormData('reportNo', e.target.value)}
+                        placeholder="Auto-generated if empty"
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date of Inspection <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.dateOfInspection}
+                        onChange={(e) => updateFormData('dateOfInspection', e.target.value)}
+                        required
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Client Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.clientName}
+                        onChange={(e) => updateFormData('clientName', e.target.value)}
+                        placeholder="Enter client name"
+                        required
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Site Address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.siteAddress}
+                        onChange={(e) => updateFormData('siteAddress', e.target.value)}
+                        placeholder="Enter site address"
+                        required
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tank Identification <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.tankId}
+                        onChange={(e) => updateFormData('tankId', e.target.value)}
+                        placeholder="e.g., Tank-01, WT-A1"
+                        required
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tank Type</label>
+                      <select
+                        value={formData.tankType}
+                        onChange={(e) => updateFormData('tankType', e.target.value)}
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="Overhead">Overhead</option>
+                        <option value="Underground">Underground</option>
+                        <option value="Ground Level">Ground Level</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tank Material</label>
+                      <select
+                        value={formData.tankMaterial}
+                        onChange={(e) => updateFormData('tankMaterial', e.target.value)}
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="Steel">Steel</option>
+                        <option value="Concrete">Concrete</option>
+                        <option value="Plastic">Plastic</option>
+                        <option value="Fiberglass">Fiberglass</option>
+                        <option value="Stainless Steel">Stainless Steel</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Capacity (litres)</label>
+                      <input
+                        type="number"
+                        value={formData.capacity}
+                        onChange={(e) => updateFormData('capacity', e.target.value)}
+                        placeholder="e.g., 10000"
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tank Dimensions */}
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tank Dimensions (mm)</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <input
+                        type="number"
+                        value={formData.dimensions.length}
+                        onChange={(e) => updateFormData('dimensions.length', e.target.value)}
+                        placeholder="Length"
+                        className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <input
+                        type="number"
+                        value={formData.dimensions.width}
+                        onChange={(e) => updateFormData('dimensions.width', e.target.value)}
+                        placeholder="Width"
+                        className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <input
+                        type="number"
+                        value={formData.dimensions.height}
+                        onChange={(e) => updateFormData('dimensions.height', e.target.value)}
+                        placeholder="Height"
+                        className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Observations Section */}
+                <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <h2 className="text-xl font-semibold mb-4 text-orange-600 flex items-center">
+                    <span className="mr-2">🔍</span>
+                    Observations and Findings
+                  </h2>
+                  
+                  <div className="space-y-6">
+                    {/* Observation rows with better mobile layout */}
+                    {[
+                      { label: 'External Structure', condition: 'externalCondition', remarks: 'externalRemarks', placeholder: 'e.g., Found 8 possible leaks' },
+                      { label: 'Internal Surface', condition: 'internalCondition', remarks: 'internalRemarks', placeholder: 'e.g., Biofilm found on the wall' },
+                      { label: 'Tank Roof/Cover', condition: 'roofCondition', remarks: 'roofRemarks', placeholder: 'e.g., Obstruction found at entrance' },
+                      { label: 'Ladders/Access Points', condition: 'accessCondition', remarks: 'accessRemarks', placeholder: 'e.g., No major issues' },
+                      { label: 'Cleanliness', condition: 'cleanliness', remarks: 'cleanlinessRemarks', placeholder: 'e.g., Sediment more than 2 cm thick' },
+                      { label: 'Water Quality', condition: 'waterQuality', remarks: 'waterQualityRemarks', placeholder: 'e.g., No odor' }
+                    ].map((item, index) => (
+                      <div key={index} className="space-y-3">
+                        <h3 className="font-medium text-gray-800">{item.label}</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <select
+                              value={formData[item.condition]}
+                              onChange={(e) => updateFormData(item.condition, e.target.value)}
+                              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              {item.condition === 'cleanliness' ? (
+                                <>
+                                  <option value="Clean">Clean</option>
+                                  <option value="Acceptable">Acceptable</option>
+                                  <option value="Dirty">Dirty</option>
+                                  <option value="Very Dirty">Very Dirty</option>
+                                </>
+                              ) : item.condition === 'waterQuality' ? (
+                                <>
+                                  <option value="Clear">Clear</option>
+                                  <option value="Slightly Cloudy">Slightly Cloudy</option>
+                                  <option value="Cloudy">Cloudy</option>
+                                  <option value="Discolored">Discolored</option>
+                                </>
+                              ) : (
+                                <>
+                                  <option value="Excellent">Excellent</option>
+                                  <option value="Good">Good</option>
+                                  <option value="Fair">Fair</option>
+                                  <option value="Poor">Poor</option>
+                                </>
+                              )}
+                            </select>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <input
+                              type="text"
+                              value={formData[item.remarks]}
+                              onChange={(e) => updateFormData(item.remarks, e.target.value)}
+                              placeholder={item.placeholder}
+                              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Photos Section */}
+                <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <h2 className="text-xl font-semibold mb-4 text-purple-600 flex items-center">
+                    <span className="mr-2">📸</span>
+                    Photographic Evidence
+                  </h2>
+                  <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-4 text-gray-400">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                      <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    <p className="text-gray-600 mb-2">Photo upload functionality</p>
+                    <p className="text-sm text-gray-500">Photos can be added after report generation</p>
+                    <p className="text-xs text-gray-400 mt-2">💡 Tip: Use your phone's camera to take photos and attach them to the final report</p>
+                  </div>
+                </div>
+
+                {/* Recommendations and Conclusion */}
+                <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <h2 className="text-xl font-semibold mb-4 text-green-600 flex items-center">
+                    <span className="mr-2">✅</span>
+                    Recommendations & Conclusion
+                  </h2>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Recommendations
+                      </label>
+                      <textarea
+                        value={formData.recommendations}
+                        onChange={(e) => updateFormData('recommendations', e.target.value)}
+                        rows="6"
+                        placeholder="1. Clean and disinfect the tank immediately&#10;2. Repair all identified leaks&#10;3. Clear obstructions&#10;4. Schedule regular inspections&#10;5. Install proper ventilation"
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Conclusion
+                      </label>
+                      <textarea
+                        value={formData.conclusion}
+                        onChange={(e) => updateFormData('conclusion', e.target.value)}
+                        rows="4"
+                        placeholder="Based on the inspection findings, the water tank requires immediate attention. The tank is not fit for continued use in its current condition and poses potential health risks..."
+                        className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Action Buttons */}
+                <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-700">Quick Actions</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                      onClick={() => {
+                        if (confirm('Are you sure you want to clear all form data?')) {
+                          setFormData({
+                            reportNo: '',
+                            dateOfInspection: new Date().toISOString().split('T')[0],
+                            inspector: 'Nazrul Zamri Mohd Yusof',
+                            clientName: '',
+                            siteAddress: '',
+                            tankId: '',
+                            tankType: 'Overhead',
+                            tankMaterial: 'Steel',
+                            capacity: '',
+                            lastInspectionDate: 'Not Available',
+                            dimensions: { length: '', width: '', height: '' },
+                            externalCondition: 'Fair',
+                            externalRemarks: '',
+                            internalCondition: 'Poor',
+                            internalRemarks: '',
+                            roofCondition: 'Poor',
+                            roofRemarks: '',
+                            accessCondition: 'Fair',
+                            accessRemarks: '',
+                            cleanliness: 'Dirty',
+                            cleanlinessRemarks: '',
+                            waterQuality: 'Clear',
+                            waterQualityRemarks: '',
+                            recommendations: '',
+                            conclusion: ''
+                          });
+                          localStorage.removeItem('hydrogrid-form-data');
+                        }
+                      }}
+                      className="bg-gray-500 hover:bg-gray-600 active:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2"
+                    >
+                      <span>🗑️</span>
+                      <span>Clear Form</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                      className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2"
+                    >
+                      <span>⬆️</span>
+                      <span>Back to Top</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Generate Report Button - Enhanced */}
+                <div className="text-center">
+                  <button
+                    onClick={generateWordDocument}
+                    disabled={!isFormValid() || isGenerating}
+                    className={`px-8 py-4 rounded-lg font-semibold flex items-center mx-auto space-x-3 transition-all duration-300 shadow-lg text-lg ${
+                      isFormValid() && !isGenerating
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-xl transform hover:scale-105 active:scale-95'
+                        : 'bg-gray-400 cursor-not-allowed text-gray-200'
+                    }`}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Generating Report...</span>
+                      </>
+                    ) : showSuccess ? (
+                      <>
+                        <CheckIcon />
+                        <span>Report Generated Successfully!</span>
+                      </>
+                    ) : (
+                      <>
+                        <DownloadIcon />
+                        <span>Generate Word Report</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  {!isFormValid() && (
+                    <p className="text-sm text-red-500 mt-2">
+                      Please fill in all required fields (marked with *) to generate report
+                    </p>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="text-center text-gray-500 text-sm py-4 border-t border-gray-200">
+                  <p>© 2024 Hydrogrid Services • Professional Water Tank Inspection</p>
+                  <p className="mt-1">Contact: 0165049454 • nazrulzamri@gmail.com</p>
+                </div>
+              </div>
+
+              {/* Floating action button for mobile */}
+              <div className="fixed bottom-6 right-6 sm:hidden">
+                <button
+                  onClick={generateWordDocument}
+                  disabled={!isFormValid() || isGenerating}
+                  className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
+                    isFormValid() && !isGenerating
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-gray-400 text-gray-200'
+                  }`}
+                >
+                  {isGenerating ? (
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : showSuccess ? (
+                    <CheckIcon />
+                  ) : (
+                    <DownloadIcon />
+                  )}
+                </button>
+              </div>
+            </div>
+          );
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HydrogridApp />);
+    </script>
+</body>
+</html>
